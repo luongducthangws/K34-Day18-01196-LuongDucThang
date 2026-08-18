@@ -1,12 +1,25 @@
 """Shared configuration for Lab 18."""
 
-import os
+import os, sys
 from dotenv import load_dotenv
 
-load_dotenv()
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
 
-# --- API Keys ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# Fix HF_HOME if pointing to a non-existent drive (e.g. unmounted Google Drive G:)
+hf_home = os.environ.get("HF_HOME", "")
+if hf_home:
+    drive = os.path.splitdrive(hf_home)[0]
+    if drive and not os.path.exists(drive + "\\"):
+        os.environ["HF_HOME"] = os.path.join(os.path.expanduser("~"), ".cache", "huggingface")
+
+# --- API Keys & LLM ---
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", os.getenv("OPENROUTER_API_KEY", ""))
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", os.getenv("OPENROUTER_BASE_URL", None))
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
 
 # --- Qdrant ---
 QDRANT_HOST = "localhost"
